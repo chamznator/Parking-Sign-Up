@@ -58,19 +58,19 @@ window = tk.Tk()
 window.title("Parking Registration, Aerosoft")  # Set the title
 
 # Set window size
-window.geometry("400x200")  # Set window size (width x height)
+window.geometry("400x250")  # Set window size (width x height)
 
 # Load the company logo image
 logo = tk.PhotoImage(file="aerocol 1.png")  # Replace "company_logo.gif" with the path to your logo image
 
 # Create a label to display the logo
 logo_label = tk.Label(window, image=logo)
-logo_label.pack(padx=10, pady=10, anchor="w")  # Add padding and anchor to the left (west)
+logo_label.pack(anchor="w")  # Add padding and anchor to the left (west)
 
 
 # Create a label for the title
 title_label = tk.Label(window, text="Parking Registration, Aerosoft", font=("Helvetica", 16, "bold"), fg="red")
-title_label.pack(pady=10)  # Add some padding
+title_label.pack(pady=30)  # Add some padding
 
 # Create a label to instruct the user
 instructions_label = tk.Label(window, text="Enter your license plate:", font=("Helvetica", 12))
@@ -213,7 +213,7 @@ def send_daily_notification():
     toaster.show_toast(notification_title, notification_message, icon_path='',duration=2147483647)
 
 # Schedule the notification to run every day at a specific time
-notification_time = datetime.time(9,30)  # 8:00 AM
+notification_time = datetime.time(9,30)  # 9:30 AM
 while True:
     now = datetime.datetime.now().time()
     if now.hour == notification_time.hour and now.minute == notification_time.minute:
