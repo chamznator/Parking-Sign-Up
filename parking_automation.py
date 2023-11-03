@@ -60,6 +60,14 @@ window.title("Parking Registration, Aerosoft")  # Set the title
 # Set window size
 window.geometry("400x200")  # Set window size (width x height)
 
+# Load the company logo image
+logo = tk.PhotoImage(file="aerocol 1.png")  # Replace "company_logo.gif" with the path to your logo image
+
+# Create a label to display the logo
+logo_label = tk.Label(window, image=logo)
+logo_label.pack(padx=10, pady=10, anchor="w")  # Add padding and anchor to the left (west)
+
+
 # Create a label for the title
 title_label = tk.Label(window, text="Parking Registration, Aerosoft", font=("Helvetica", 16, "bold"), fg="red")
 title_label.pack(pady=10)  # Add some padding
