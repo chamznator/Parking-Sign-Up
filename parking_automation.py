@@ -205,7 +205,7 @@ def send_daily_notification():
     toaster.show_toast(notification_title, notification_message, icon_path='',duration=2147483647)
 
 # Schedule the notification to run every day at a specific time
-notification_time = datetime.time(15,17)  # 8:00 AM
+notification_time = datetime.time(9,30)  # 8:00 AM
 while True:
     now = datetime.datetime.now().time()
     if now.hour == notification_time.hour and now.minute == notification_time.minute:
