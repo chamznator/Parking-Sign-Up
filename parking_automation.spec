@@ -5,7 +5,7 @@ a = Analysis(
     ['parking_automation.py'],
     pathex=[],
     binaries=[('C:\\chromedriver.exe', '.')],
-    datas=[],
+    datas=[('aerocol_1.png', '.')],
     hiddenimports=['win10toast'],
     hookspath=[],
     hooksconfig={},

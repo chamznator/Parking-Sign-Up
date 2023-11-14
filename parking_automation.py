@@ -9,7 +9,9 @@ from win10toast import ToastNotifier
 import tkinter as tk
 import time
 import datetime
-
+from PIL import Image
+from tkinter import Tk, Label
+from PIL import Image, ImageTk
 
 
 
@@ -17,6 +19,13 @@ import datetime
 
 #Part 1- UI
 
+ 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+image1 = Image.open(resource_path("aerocol_1.png"))
 
 def save_license_plate(license_plate):
     appdata_dir = os.path.join(os.getenv('APPDATA'), 'ParkingReg')  # Replace 'YourAppName' with your application's folder name
@@ -61,7 +70,7 @@ window.title("Parking Registration, Aerosoft")  # Set the title
 window.geometry("400x250")  # Set window size (width x height)
 
 # Load the company logo image
-logo = tk.PhotoImage(file="aerocol 1.png")  # Replace "company_logo.gif" with the path to your logo image
+logo = ImageTk.PhotoImage(image1)
 
 # Create a label to display the logo
 logo_label = tk.Label(window, image=logo)
