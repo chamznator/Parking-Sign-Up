@@ -1,34 +1,24 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-import time  # Import the time module
+import time
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import Select
 import os, sys
 from win10toast import ToastNotifier
 
 import tkinter as tk
-import time
 import datetime
-from PIL import Image
-from tkinter import Tk, Label
 from PIL import Image, ImageTk
 
+# Part 1 - UI
 
-
-
-
-#Part 1- UI
-
- 
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
 image1 = Image.open(resource_path("aerocol_1.png"))
 
 def save_license_plate(license_plate):
-    appdata_dir = os.path.join(os.getenv('APPDATA'), 'ParkingReg')  # Replace 'YourAppName' with your application's folder name
+    appdata_dir = os.path.join(os.getenv('APPDATA'), 'ParkingReg')
     data_file_path = os.path.join(appdata_dir, 'license_plate.txt')
 
     os.makedirs(os.path.dirname(data_file_path), exist_ok=True)
@@ -37,7 +27,7 @@ def save_license_plate(license_plate):
         file.write(license_plate)
 
 def load_license_plate():
-    appdata_dir = os.path.join(os.getenv('APPDATA'), 'ParkingReg')  # Replace 'YourAppName' with your application's folder name
+    appdata_dir = os.path.join(os.getenv('APPDATA'), 'ParkingReg')
     data_file_path = os.path.join(appdata_dir, 'license_plate.txt')
 
     try:
@@ -45,7 +35,6 @@ def load_license_plate():
             return file.read()
     except FileNotFoundError:
         return ""
-
 
 def on_license_plate_change(*args):
     entered_license_plate = license_plate_var.get().upper()
@@ -64,10 +53,10 @@ def submit_license_plate_and_run_selenium():
 
 # Create the main window
 window = tk.Tk()
-window.title("Parking Registration, Aerosoft")  # Set the title
+window.title("Parking Registration, Aerosoft")
 
 # Set window size
-window.geometry("400x250")  # Set window size (width x height)
+window.geometry("400x350")  # Increased height for checkboxes and title
 
 # Load the company logo image
 logo = ImageTk.PhotoImage(image1)
@@ -76,10 +65,31 @@ logo = ImageTk.PhotoImage(image1)
 logo_label = tk.Label(window, image=logo)
 logo_label.pack(anchor="w")  # Add padding and anchor to the left (west)
 
-
 # Create a label for the title
 title_label = tk.Label(window, text="Parking Registration, Aerosoft", font=("Helvetica", 16, "bold"), fg="red")
-title_label.pack(pady=30)  # Add some padding
+title_label.pack(pady=10)  # Add some padding
+
+# Create a label for the "In office reminder days" title
+reminder_title_label = tk.Label(window, text="In office reminder days", font=("Helvetica", 12, "bold"))
+reminder_title_label.pack(pady=5)
+
+# Create checkboxes for each day in a single line with only the first letter
+reminder_days = {
+    "Monday": tk.IntVar(),
+    "Tuesday": tk.IntVar(),
+    "Wednesday": tk.IntVar(),
+    "Thursday": tk.IntVar(),
+    "Friday": tk.IntVar(),
+    "Saturday": tk.IntVar(),
+    "Sunday": tk.IntVar(),
+}
+
+checkbox_line = tk.Frame(window)
+checkbox_line.pack()
+
+for day, var in reminder_days.items():
+    checkbox = tk.Checkbutton(checkbox_line, text=day[0], variable=var, font=("Helvetica", 12))
+    checkbox.pack(side=tk.LEFT)
 
 # Create a label to instruct the user
 instructions_label = tk.Label(window, text="Enter your license plate:", font=("Helvetica", 12))
@@ -105,27 +115,21 @@ submit_button.pack(pady=10)  # Add some padding
 result_label = tk.Label(window, text="", font=("Helvetica", 12))
 result_label.pack()
 
+# Part 2 - Selenium Automation
 
-
-# Function to run Selenium
 def run_selenium():
     service = Service(executable_path='C:/Users/ChamathGuruge/Documents/Parking Sign Up/chromedriver.exe')
     options = webdriver.ChromeOptions()
 
-
-
-
     if getattr(sys, 'frozen', False):
-        chromedriver_path=os.path.join(sys._MEIPASS, "chromedriver.exe")
-        service=Service(executable_path=chromedriver_path)
-        driver= webdriver.Chrome(service=service, options=options)
+        chromedriver_path = os.path.join(sys._MEIPASS, "chromedriver.exe")
+        service = Service(executable_path=chromedriver_path)
+        driver = webdriver.Chrome(service=service, options=options)
     else:
         driver = webdriver.Chrome(service=service, options=options)
 
-
-
     # Initialize the WebDriver (choose the appropriate browser)
-    #Running Selenium Stuff
+    # Running Selenium Stuff
 
     # Open the parking website
     driver.get("https://dashboard-login.offstreet.io/login?state=hKFo2SA3TmFsZGdPUFlBa29WekRJbkRwenlURklOUjZVTVlNd6FupWxvZ2luo3RpZNkgWHRxNmoyRmMzU0NFbVVsM014bEFWdmtvNEtMeDJYYWujY2lk2SBiRFB6T1hMMVFZQ1cyRHRiSGV4dHpPa1ZQbkM1QWlvTA&client=bDPzOXL1QYCW2DtbHextzOkVPnC5AioL&protocol=oauth2&audience=https%3A%2F%2Fovm.offstreet.ca%2F&redirect_uri=https%3A%2F%2Fdashboard.offstreet.io&wl=null&scope=openid%20profile%20email&response_type=code&response_mode=query&nonce=OUVkZnRrNGVPMDBHNXMyOWlmSTBabVU2czMwdWY4bmRFTVM5T2h5dWlJMg%3D%3D&code_challenge=CsS_krl5KY7KMRTdYFtLobFUL7-w0nb4sL1Zl3U2Ay4&code_challenge_method=S256&auth0Client=eyJuYW1lIjoiYXV0aDAtcmVhY3QiLCJ2ZXJzaW9uIjoiMS4xMi4xIn0%3D")
@@ -175,58 +179,27 @@ def run_selenium():
     # Close the browser when done
     driver.quit()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Start the GUI main loop
 window.mainloop()
 
-
-
-
-
-
-
-
-
-
-
-#Part 3- Notification
+# Part 3 - Notification
 
 # Create a function to send a daily notification
 def send_daily_notification():
     toaster = ToastNotifier()
     current_date = datetime.date.today()
     notification_title = "Parking Registration"
-    notification_message = f"Today's date: {current_date} Please register for parking"
-    # Set a large duration to make the notification persistent
-    toaster.show_toast(notification_title, notification_message, icon_path='',duration=2147483647)
+
+    # Check if the current day is selected for notification
+    if reminder_days[current_date.strftime("%A")].get():
+        notification_message = f"Today's date: {current_date} Please register for parking"
+        # Set a large duration to make the notification persistent
+        toaster.show_toast(notification_title, notification_message, icon_path='', duration=2147483647)
 
 # Schedule the notification to run every day at a specific time
-notification_time = datetime.time(9,30)  # 9:30 AM
+notification_time = datetime.time(10, 49)  # 9:30 AM
 while True:
     now = datetime.datetime.now().time()
     if now.hour == notification_time.hour and now.minute == notification_time.minute:
         send_daily_notification()
     time.sleep(60)  # Check every minute
-
-# The script will keep running to check and send the daily notification
