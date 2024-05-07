@@ -16,6 +16,7 @@ import tkinter as tk
 import datetime
 from PIL import Image, ImageTk
 from plyer import notification
+from encryption_utils import decrypt_data
 
 
 
@@ -24,6 +25,11 @@ import psutil
 import psutil
 import os
 import sys
+
+import config
+
+USERNAME = config.APP_USERNAME
+PASSWORD = config.APP_PASSWORD
 
 
 # Global flag to track if Selenium has run
@@ -229,8 +235,16 @@ def run_selenium():
         username_field = driver.find_element(By.ID, "email")
         password_field = driver.find_element(By.ID, "password")
 
-        username_field.send_keys("ctyndorf@aerosoftsys.com")
-        password_field.send_keys("K8p0n3r1d!sAB")
+        #username_field.send_keys("ctyndorf@aerosoftsys.com")
+        #password_field.send_keys("K8p0n3r1d!sAB")
+        #username_field.send_keys(USERNAME)
+        #password_field.send_keys(PASSWORD)
+        # Decrypt the credentials
+        decrypted_username = decrypt_data(config.USERNAME, config.KEY)
+        decrypted_password = decrypt_data(config.PASSWORD, config.KEY)
+
+        username_field.send_keys(decrypted_username)
+        password_field.send_keys(decrypted_password)
 
         # Locate and click the login button
         login_button = driver.find_element(By.ID, "login")
