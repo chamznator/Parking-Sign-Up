@@ -4,10 +4,48 @@ import time
 from selenium.webdriver.chrome.service import Service
 import os, sys
 from win10toast import ToastNotifier
+from selenium.webdriver.chrome.service import Service as ChromeService
+#from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from selenium.webdriver.edge.service import Service as EdgeService
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
+from plyer import notification  
 import tkinter as tk
 import datetime
 from PIL import Image, ImageTk
+from plyer import notification
+
+
+
+import psutil
+
+import psutil
+import os
+import sys
+
+
+# Global flag to track if Selenium has run
+selenium_has_run = False
+
+"""def terminate_processes_by_name(process_name):
+    current_pid = os.getpid()
+
+    for process in psutil.process_iter(['pid', 'name']):
+        if process.info['name'] == process_name and process.info['pid'] != current_pid:
+            try:
+                # Terminate the process
+                psutil.Process(process.info['pid']).terminate()
+            except Exception as e:
+                print(f"Failed to terminate process {process_name}: {e}")
+
+# Terminate background processes from a previous instance, if any
+terminate_processes_by_name("parking_automation.exe")"""
+
+
+
+
 
 # Part 1 - UI
 
@@ -35,10 +73,33 @@ def load_license_plate():
             return file.read()
     except FileNotFoundError:
         return ""
+def save_checkbox_state():
+    appdata_dir = os.path.join(os.getenv('APPDATA'), 'ParkingReg')
+    data_file_path = os.path.join(appdata_dir, 'checkbox_state.txt')
+
+    os.makedirs(os.path.dirname(data_file_path), exist_ok=True)
+
+    with open(data_file_path, "w") as file:
+        for day, var in reminder_days.items():
+            file.write(f"{day}:{var.get()}\n")
+
+def load_checkbox_state():
+    appdata_dir = os.path.join(os.getenv('APPDATA'), 'ParkingReg')
+    data_file_path = os.path.join(appdata_dir, 'checkbox_state.txt')
+
+    try:
+        with open(data_file_path, "r") as file:
+            for line in file:
+                day, state = line.strip().split(':')
+                reminder_days[day].set(int(state))
+    except FileNotFoundError:
+        pass  # If the file is not found, use default values
 
 def on_license_plate_change(*args):
     entered_license_plate = license_plate_var.get().upper()
     license_plate_var.set(entered_license_plate)
+
+
 
 # Function to submit the license plate and start Selenium (only if a license plate is entered)
 def submit_license_plate_and_run_selenium():
@@ -46,14 +107,31 @@ def submit_license_plate_and_run_selenium():
     if entered_license_plate:
         result_label.config(text=f"Entered License Plate: {entered_license_plate}")
         save_license_plate(entered_license_plate)
+        save_checkbox_state()  # Save the state of reminder checkboxes
         global stored_license_plate
         stored_license_plate = entered_license_plate
         window.destroy()
         run_selenium()  # Call the function to run Selenium
 
+
+
+
+
 # Create the main window
 window = tk.Tk()
 window.title("Parking Registration, Aerosoft")
+
+# Global dictionary for reminder days
+reminder_days = {
+    "Monday": tk.IntVar(),
+    "Tuesday": tk.IntVar(),
+    "Wednesday": tk.IntVar(),
+    "Thursday": tk.IntVar(),
+    "Friday": tk.IntVar(),
+    "Saturday": tk.IntVar(),
+    "Sunday": tk.IntVar(),
+}
+
 
 # Set window size
 window.geometry("400x350")  # Increased height for checkboxes and title
@@ -73,16 +151,7 @@ title_label.pack(pady=10)  # Add some padding
 reminder_title_label = tk.Label(window, text="In office reminder days", font=("Helvetica", 12, "bold"))
 reminder_title_label.pack(pady=5)
 
-# Create checkboxes for each day in a single line with only the first letter
-reminder_days = {
-    "Monday": tk.IntVar(),
-    "Tuesday": tk.IntVar(),
-    "Wednesday": tk.IntVar(),
-    "Thursday": tk.IntVar(),
-    "Friday": tk.IntVar(),
-    "Saturday": tk.IntVar(),
-    "Sunday": tk.IntVar(),
-}
+
 
 checkbox_line = tk.Frame(window)
 checkbox_line.pack()
@@ -114,21 +183,42 @@ submit_button.pack(pady=10)  # Add some padding
 # Create a label to display the entered license plate
 result_label = tk.Label(window, text="", font=("Helvetica", 12))
 result_label.pack()
+# Load the state of reminder checkboxes
+load_checkbox_state()
+
+
 
 # Part 2 - Selenium Automation
 
 def run_selenium():
-    service = Service(executable_path='C:/Users/ChamathGuruge/Documents/Parking Sign Up/chromedriver.exe')
+    """service = Service(executable_path='C:/Users/ChamathGuruge/Documents/Parking Sign Up/chromedriver.exe')
     options = webdriver.ChromeOptions()
 
     if getattr(sys, 'frozen', False):
         chromedriver_path = os.path.join(sys._MEIPASS, "chromedriver.exe")
-        service = Service(executable_path=chromedriver_path)
+        service = Service(executable_path=chromedriver_path)    
         driver = webdriver.Chrome(service=service, options=options)
     else:
         driver = webdriver.Chrome(service=service, options=options)
 
-    # Initialize the WebDriver (choose the appropriate browser)
+    # Initialize the WebDriver (choose the appropriate browser)"""
+    global selenium_has_run
+    try:
+        # Initialize Chrome WebDriver with manual setup
+        chrome_service = ChromeService(executable_path='C:/Users/ChamathGuruge/Documents/Parking Sign Up/chromedriver.exe')
+        chrome_options = webdriver.ChromeOptions()
+        driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+        print("Using Chrome WebDriver")
+    except Exception as chrome_exception:
+        print(f"Chrome initialization failed: {chrome_exception}, switching to Edge")
+        try:
+            # Correct initialization of Edge WebDriver with WebDriver Manager
+            edge_service = EdgeService(EdgeChromiumDriverManager().install())
+            driver = webdriver.Edge(service=edge_service)
+            print("Using Edge WebDriver")
+        except Exception as edge_exception:
+            print(f"Edge initialization also failed: {edge_exception}")
+            return  # Exit the function if both drivers fail
     # Running Selenium Stuff
 
     # Open the parking website
@@ -147,30 +237,33 @@ def run_selenium():
         login_button.click()
     except Exception as e:
         print(f"Failed to log in: {str(e)}")
-
+   
+    wait = WebDriverWait(driver, 15)  # Wait for up to 15 seconds
     try:
-        driver.implicitly_wait(10)
-
-        dropdown = driver.find_element(By.XPATH, '//*[@id="permitConfigSelect"]/div')
+        # Wait until the dropdown is clickable and then click it
+        dropdown = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="permitConfigSelect"]/div')))
         dropdown.click()
 
-        option = driver.find_element(By.XPATH, '//*[@id="Day Parking ($15 - expires at midnight)"]/span')
+        # Wait until the option is clickable and then click it
+        option = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="Day Parking ($15 - expires at midnight)"]/span')))
         option.click()
 
-        licence = driver.find_element(By.ID, 'plateInput')
+        # Wait until the licence input is clickable
+        licence = wait.until(EC.element_to_be_clickable((By.ID, 'plateInput')))
         licence.click()
-
         licence.send_keys(stored_license_plate)
 
-        create = driver.find_element(By.ID, 'create')
+        # Wait until the create button is clickable and then click it
+        create = wait.until(EC.element_to_be_clickable((By.ID, 'create')))
         create.click()
         # Wait for 2 seconds
         time.sleep(2)
-
+        selenium_has_run = True
         # Direct to the specified website
         driver.get("https://dashboard.offstreet.io/vehicles/active")
         # Add a delay to keep the browser open
         time.sleep(30)
+       
     except Exception as e:
         print(f"Failed to complete the process: {str(e)}")
 
@@ -186,20 +279,49 @@ window.mainloop()
 
 # Create a function to send a daily notification
 def send_daily_notification():
-    toaster = ToastNotifier()
-    current_date = datetime.date.today()
-    notification_title = "Parking Registration"
+    while True:
+        current_datetime = datetime.datetime.now()
+        current_day = current_datetime.strftime("%A")
+        current_hour = current_datetime.hour
+        current_minute = current_datetime.minute
 
-    # Check if the current day is selected for notification
-    if reminder_days[current_date.strftime("%A")].get():
-        notification_message = f"Today's date: {current_date} Please register for parking"
-        # Set a large duration to make the notification persistent
-        toaster.show_toast(notification_title, notification_message, icon_path='', duration=2147483647)
+        # Check if today is a reminder day and it's after 9:00 AM
+        if reminder_days.get(current_day, False) and current_hour >= 9:
+            # Keep reminding every 15 minutes until selenium_has_run is True
+            while not selenium_has_run:
+                # Check time again to ensure reminders are sent in new iteration only if it's still the same day
+                current_datetime = datetime.datetime.now()
+                new_current_day = current_datetime.strftime("%A")
+                if new_current_day != current_day or selenium_has_run:
+                    # Break if the day has changed or selenium_has_run has been set to True
+                    break
+                
+                notification_title = "Parking Registration Reminder"
+                notification_message = "Don't forget to register your parking today!"
+                try:
+                    notification.notify(
+                        title=notification_title,
+                        message=notification_message,
+                        app_name='Parking Registration App',
+                        timeout=10,  # Duration in seconds
+                        # Optional: app_icon='path/to/your/icon.ico'  # Path to your .ico file (Windows)
+                    )
+                except Exception as e:
+                    print(f"Failed to show notification. Error: {e}")
+                    # Optionally, log the error to a file or handle it in another way
 
-# Schedule the notification to run every day at a specific time
-notification_time = datetime.time(10, 49)  # 9:30 AM
-while True:
-    now = datetime.datetime.now().time()
-    if now.hour == notification_time.hour and now.minute == notification_time.minute:
-        send_daily_notification()
-    time.sleep(60)  # Check every minute
+                # Wait for 15 minutes before sending the next reminder
+                time.sleep(900)  # 900 seconds = 15 minutes
+
+            # Once selenium_has_run is True, wait till the next day to check conditions again
+            while current_datetime.strftime("%A") == current_day:
+                time.sleep(3600)  # Check again in an hour if it's still the same day
+
+
+
+send_daily_notification()
+
+   
+    
+        
+    

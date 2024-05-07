@@ -22,7 +22,7 @@ ChangesAssociations=yes
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputBaseFilename=ParkingReg1.3.2
+OutputBaseFilename=ParkingReg1.3.3
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
