@@ -5,13 +5,14 @@ a = Analysis(
     ['parking_automation.py'],
     pathex=[],
     binaries=[('C:\\chromedriver.exe', '.')],
-    datas=[('aerocol_1.png', '.')],
+    datas=[('aerocol_1.png', '.'), ('config.py', '.'), ('encryption_utils.py', '.')],
     hiddenimports=['win10toast'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
     noarchive=False,
+    optimize=0,
 )
 pyz = PYZ(a.pure)
 

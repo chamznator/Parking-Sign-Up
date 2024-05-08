@@ -26,6 +26,18 @@ import psutil
 import os
 import sys
 
+
+# Get the path to the bundled files
+bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+
+# Import the config module from the bundled files
+config_path = os.path.join(bundle_dir, 'config.py')
+config = __import__('config', fromlist=[''])
+
+# Import the encryption_utils module from the bundled files
+encryption_utils_path = os.path.join(bundle_dir, 'encryption_utils.py')
+encryption_utils = __import__('encryption_utils', fromlist=[''])
+
 import config
 
 USERNAME = config.APP_USERNAME
@@ -240,8 +252,8 @@ def run_selenium():
         #username_field.send_keys(USERNAME)
         #password_field.send_keys(PASSWORD)
         # Decrypt the credentials
-        decrypted_username = decrypt_data(config.USERNAME, config.KEY)
-        decrypted_password = decrypt_data(config.PASSWORD, config.KEY)
+        decrypted_username = decrypt_data(config.APP_USERNAME, config.KEY)
+        decrypted_password = decrypt_data(config.APP_PASSWORD, config.KEY)
 
         username_field.send_keys(decrypted_username)
         password_field.send_keys(decrypted_password)
